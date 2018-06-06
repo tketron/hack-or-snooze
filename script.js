@@ -16,6 +16,11 @@ $(function() {
     addNewLink();
   });
 
+  $('.form').on('submit', '#signupForm', function(event) {
+    event.preventDefault();
+    createNewUser();
+  });
+
   $('ol').on('click', '.star', toggleFavoriteIcon);
   $('ol').on('click', '.link', function(event) {
     showHostnameLinks($(event.target).text());
@@ -43,6 +48,24 @@ function constructAndDisplayStoryLink(story) {
     </li>`
   );
   $('#links').append($newLink);
+}
+
+function createNewUser() {
+  let name = $('#name').val();
+  let username = $('#username').val();
+  let password = $('#password').val();
+  let dataObj = {
+    data: {
+      name: name,
+      username: username,
+      password: password
+    }
+  };
+
+  $.post('https://hack-or-snooze.herokuapp.com/users', dataObj).then(msg => {
+    alert(`Sign Up Successful!`);
+    console.log(msg);
+  });
 }
 
 function addNewLink() {

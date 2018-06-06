@@ -26,7 +26,11 @@ h1 {
   width: 300px;
   padding-left: 4em;
   padding-top: 1em;
-  display: none;
+  /* display: none; */
+}
+
+#signupForm {
+  display: block;
 }
 
 .form-row {
