@@ -1,11 +1,16 @@
 let $links;
 
 $(function() {
+  displayStories();
+
   $('#submitText').on('click', function() {
     $('.form').slideToggle();
   });
+
   $('#favoritesText').on('click', toggleFavorites);
+
   $links = $('.link-row');
+
   $('.container').on('submit', '#submitForm', function(event) {
     event.preventDefault();
     addNewLink();
@@ -16,6 +21,29 @@ $(function() {
     showHostnameLinks($(event.target).text());
   });
 });
+
+function displayStories() {
+  //query API to get a list of all stories
+  $.getJSON(`https://hack-or-snooze.herokuapp.com/stories`)
+    .then(stories => {
+      //construct a link and append it to the page
+      stories.data.forEach(story => {
+        constructAndDisplayStoryLink(story);
+      });
+    })
+    .catch(err => console.log(err));
+}
+
+function constructAndDisplayStoryLink(story) {
+  let $newLink = $(
+    `<li class="link-row">
+    <i class="star far fa-star">
+    </i><a href=${story.url}>${story.title}</a>
+    <span class="link">(${story.url})</span>
+    </li>`
+  );
+  $('#links').append($newLink);
+}
 
 function addNewLink() {
   //pull data from form
@@ -50,7 +78,8 @@ function toggleFavorites() {
     $('#favoritesText').text('all');
   } else {
     $('#links').empty();
-    $('#links').append($links);
+    displayStories();
+    // $('#links').append($links);
     $('#favoritesText').text('favorites');
   }
   $('#links').toggleClass('all favorites');
