@@ -1,8 +1,10 @@
 * {
   margin: 0;
   padding: 0;
-  background-color: #f6f6f0;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+.container {
+  background-color: #f6f6f0;
 }
 
 #navbar {
@@ -13,13 +15,23 @@
   padding: 0.5em;
 }
 
+#navbar span,
+#navbar h1 {
+  cursor: pointer;
+}
+
 h1 {
   padding-right: 0.7em;
 }
 
-#submitText,
-#favoritesText {
-  cursor: pointer;
+#submitForm {
+  display: none;
+}
+#signupForm {
+  display: none;
+}
+#loginForm {
+  display: none;
 }
 
 .form {
@@ -29,9 +41,9 @@ h1 {
   /* display: none; */
 }
 
-#signupForm {
-  display: block;
-}
+/* #signupForm {
+  display: block; */
+/* } */
 
 .form-row {
   padding: 0.5em;

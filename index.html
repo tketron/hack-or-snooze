@@ -13,17 +13,28 @@
 <body>
   <div class="container">
     <div id='navbar' class="nav">
-      <h1>Hack or Snooze</h1>
+      <h1 id="logo">Hack or Snooze</h1>
       <div>
-        <span id="submitText">submit</span>
+        <span id="submitText">Submit</span>
+        <span>|</span>
+        <span id="storiesText">Stories</span>
         <span>|</span>
         <span id="favoritesText">favorites</span>
+        <span>|</span>
+        <span id="loginText">Log In</span>
+        <span>|</span>
+        <span id="signUpText">Sign Up</span>
+        <span>|</span>
+        <span id="profileText">Profile</span>
+
       </div>
     </div>
     <div class="form">
       <form action="#" id="submitForm" method="post">
         <div class="form-row"><label for="title">title: </label>
         <input type="text" id="title"></input></div>
+        <div class="form-row"><label for="title">Author: </label>
+          <input type="text" id="author"></input></div>
         <div class="form-row"><label for="url">url: </label>
           <input type="url" id="url" minlength="7"></input></div>
           <div class="submit-row"><input id="submitBtn" type="submit"></input></div>
@@ -34,15 +45,28 @@
           <div class="form-row"><label for="name">name: </label>
           <input type="text" id="name"></input></div>
           <div class="form-row"><label for="username">username: </label>
-          <input type="text" id="username"></input></div>
+          <input type="text" id="usernameSignUp"></input></div>
           <div class="form-row"><label for="password">password: </label>
-          <input type="text" id="password"></input></div>
-          <div class="submit-row"><input id="submitBtn" type="submit"></input></div>
+          <input type="text" id="passwordSignUp"></input></div>
+          <div class="submit-row"><input id="submitBtnSignUp" type="submit"></input></div>
+        </form>
+      </div>
+      <div class="form">
+        <form action="#" id="loginForm" method="post">
+          <div class="form-row"><label for="username">username: </label>
+          <input type="text" id="usernameLogin"></input></div>
+          <div class="form-row"><label for="password">password: </label>
+          <input type="text" id="passwordLogin"></input></div>
+          <div class="submit-row"><input id="submitBtnLogin" type="submit"></input></div>
         </form>
       </div>
     <div id="link-container">
       <ol id="links" class="all">
       </ol>
+    </div>
+    <div id="profile-container">
+      <p id="profileName"></p>
+      <p id="profileUserName"></p>
     </div>
   </div>
 </body>
