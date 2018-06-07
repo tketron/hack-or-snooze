@@ -4,16 +4,23 @@ $(function() {
   displayStories();
 
   $('#submitText').on('click', function() {
-    $('.form').slideToggle();
+    $('#submitForm').slideToggle();
+  });
+  $('#signUpText').on('click', function() {
+    $('#signupForm').slideToggle();
+  });
+  $('#loginText').on('click', function() {
+    $('#loginForm').slideToggle();
   });
 
-  $('#favoritesText').on('click', toggleFavorites);
+  $('#favoritesText').on('click', displayFavorites);
+  $('#profileText').on('click', showUserProfile);
 
   $links = $('.link-row');
 
   $('.container').on('submit', '#submitForm', function(event) {
     event.preventDefault();
-    addNewLink();
+    createNewStory();
   });
 
   $('.form').on('submit', '#signupForm', function(event) {
@@ -43,13 +50,28 @@ function displayStories() {
     })
     .catch(err => console.log(err));
 }
+function displayFavorites() {
+  //query API to get a list of all stories
+  let userName = localStorage.getItem('userName');
+  let token = localStorage.getItem('token');
+
+  $.ajax({
+    method: 'GET',
+    url: `https://hack-or-snooze.herokuapp.com/users/${userName}`,
+
+    headers: { Authorization: 'Bearer ' + token }
+  }).then(response => {
+    $('#links').empty();
+    response.data.favorites.forEach(val => constructAndDisplayStoryLink(val));
+  });
+}
 
 function constructAndDisplayStoryLink(story) {
   let $newLink = $(
-    `<li class="link-row">
+    `<li class="link-row" id="${story.storyId}">
     <i class="star far fa-star">
-    </i><a href=${story.url}>${story.title}</a>
-    <span class="link">(${story.url})</span>
+    </i><a href="${story.url}">"${story.title}"</a>
+    <span class="link">("${story.url}")</span>
     </li>`
   );
   $('#links').append($newLink);
@@ -87,33 +109,77 @@ function loginUser() {
     response => {
       let token = response.data.token;
       localStorage.setItem('token', token);
+      localStorage.setItem('userName', username);
     }
   );
 }
 
-function addNewLink() {
+function showUserProfile() {
+  $('#link-container').empty();
+  let token = localStorage.getItem('token');
+  let userName = localStorage.getItem('userName');
+
+  $.ajax({
+    method: 'GET',
+    url: `https://hack-or-snooze.herokuapp.com/users/${userName}`,
+    headers: { Authorization: 'Bearer ' + token }
+  }).then(response => {
+    let name = response.data.name;
+    let userName = response.data.username;
+    // let profileName = $('<p>', { text: `Name:      ${name}` });
+    // let profileUsername = $('<p>', { text: `User Name:      ${userName}` });
+    // $('#profile-container').append(profileName, profileUsername);
+
+    $('#profileName').text(`Name:      ${name}`);
+    $('#profileUserName').text(`User Name:      ${userName}`);
+  });
+}
+
+function createNewStory() {
   //pull data from form
   let title = $('#title').val();
   let url = $('#url').val();
-
-  //append to list
-  let $newLink = $(
-    `<li class="link-row"><i class="star far fa-star"></i><a href=${url}>${title}</a><span class="link">(${url})</span></li>`
-  );
-  $('#links').append($newLink);
-  $links = $('.link-row');
+  let author = $('#author').val();
+  let dataObj = {
+    data: {
+      username: localStorage.getItem('userName'),
+      title: title,
+      url: url,
+      author: author
+    }
+  };
+  let token = localStorage.getItem('token');
+  $.ajax({
+    method: 'POST',
+    url: 'https://hack-or-snooze.herokuapp.com/stories?skip=0&limit=10',
+    data: dataObj,
+    headers: { Authorization: 'Bearer ' + token }
+  }).then(response => displayStories());
 
   //clear form
   $('#title').val('');
   $('#url').val('');
 }
 
-function toggleFavoriteIcon() {
+function toggleFavoriteIcon(event) {
   console.log(event.target);
-  $(event.target).toggleClass('far fas');
-  $(event.target)
+  let storyId = $(event.target)
     .parent()
-    .toggleClass('favorite');
+    .attr('id');
+
+  let token = localStorage.getItem('token');
+  let userName = localStorage.getItem('userName');
+  $.ajax({
+    method: 'POST',
+    url: `https://hack-or-snooze.herokuapp.com/users/${userName}/favorites/${storyId}`,
+
+    headers: { Authorization: 'Bearer ' + token }
+  }).then(resp => console.log(resp));
+
+  // $(event.target).toggleClass('far fas');
+  // $(event.target)
+  //   .parent()
+  //   .toggleClass('favorite');
 }
 
 function toggleFavorites() {
