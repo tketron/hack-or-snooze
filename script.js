@@ -1,33 +1,41 @@
-let isLoggedIn = false;
-
 $(function() {
   displayStories();
 
-  $('#logo').on('click', displayStories);
-  $('#submitText').on('click', function() {
-    $('#submitForm').slideToggle();
+  $('#logo').on('click', function() {
+    $('#submitForm').slideUp();
+    $('#loginForm').slideUp();
+    $('#signupForm').slideUp();
+    displayStories();
   });
-  $('#signUpText').on('click', function() {
-    $('#signupForm').slideToggle();
-  });
-  $('#loginText').on('click', function() {
-    $('#loginForm').slideToggle();
-  });
-
   $('#favoritesText').on('click', displayUserFavorites);
   $('#storiesText').on('click', displayUserStories);
   $('#profileText').on('click', showUserProfile);
+  $('#logoutText').on('click', logoutUser);
 
-  $('.container').on('submit', '#submitForm', function(event) {
+  $('#submitText').on('click', function() {
+    $('#loginForm').slideUp();
+    $('#signupForm').slideUp();
+    $('#submitForm').slideToggle();
+  });
+  $('#signUpText').on('click', function() {
+    $('#submitForm').slideUp();
+    $('#loginForm').slideUp();
+    $('#signupForm').slideToggle();
+  });
+  $('#loginText').on('click', function() {
+    $('#submitForm').slideUp();
+    $('#signupForm').slideUp();
+    $('#loginForm').slideToggle();
+  });
+
+  $('.form').on('submit', '#submitForm', function(event) {
     event.preventDefault();
     createNewStory();
   });
-
   $('.form').on('submit', '#signupForm', function(event) {
     event.preventDefault();
     createNewUser();
   });
-
   $('.form').on('submit', '#loginForm', function(event) {
     event.preventDefault();
     loginUser();
@@ -38,15 +46,13 @@ $(function() {
   $('ol').on('click', '.link', function(event) {
     showHostnameLinks($(event.target).text());
   });
-
-  checkIfLoggedIn();
 });
 
-function checkIfLoggedIn() {
+function isLoggedIn() {
   if (localStorage.getItem('token') && localStorage.getItem('userName')) {
-    isLoggedIn = true;
+    return true;
   } else {
-    isLoggedIn = false;
+    return false;
   }
 }
 
@@ -60,16 +66,14 @@ function displayStories() {
       stories.data.forEach(story => {
         constructAndDisplayStoryLink(story);
       });
-      if (isLoggedIn) {
+      if (isLoggedIn()) {
         getUserFavorites()
           .then(favorites => {
             let favoritesSet = new Set();
             favorites.forEach(favorite => {
               favoritesSet.add(favorite.storyId);
             });
-            console.log(favoritesSet);
             $('#links i').each((index, elem) => {
-              console.log(elem);
               if (
                 favoritesSet.has(
                   $(elem)
@@ -105,7 +109,7 @@ function displayUserFavorites() {
   $('#profile-container').empty();
   getUserFavorites().then(favorites => {
     $('#links').empty();
-    favorites.forEach(val => constructAndDisplayStoryLink(val, true));
+    favorites.forEach(story => constructAndDisplayStoryLink(story, true));
   });
 }
 
@@ -121,8 +125,8 @@ function displayUserStories() {
     headers: { Authorization: 'Bearer ' + token }
   }).then(response => {
     $('#links').empty();
-    response.data.stories.forEach(val =>
-      constructAndDisplayStoryLink(val, false, true)
+    response.data.stories.forEach(story =>
+      constructAndDisplayStoryLink(story, false, true)
     );
   });
 }
@@ -134,6 +138,7 @@ function constructAndDisplayStoryLink(
 ) {
   let starClass = 'far';
   if (isFavorites) starClass = 'fas';
+
   let $newLink = $(
     `<li class="link-row" id="${story.storyId}">
     <i class="star ${starClass} fa-star">
@@ -141,9 +146,11 @@ function constructAndDisplayStoryLink(
     <span class="link">(${story.url})</span>
     </li>`
   );
+
   if (isOwnStory) {
     $newLink.append($('<button class="deleteBtn">DELETE</button>'));
   }
+
   $('#links').append($newLink);
 }
 
@@ -161,7 +168,6 @@ function createNewUser() {
 
   $.post('https://hack-or-snooze.herokuapp.com/users', dataObj).then(msg => {
     alert(`Sign Up Successful!`);
-    console.log(msg);
   });
 }
 
@@ -177,7 +183,6 @@ function loginUser() {
   };
   $.post('https://hack-or-snooze.herokuapp.com/auth', dataObj).then(
     response => {
-      console.log(response);
       let token = response.data.token;
       localStorage.setItem('token', token);
       localStorage.setItem('userName', username);
@@ -185,8 +190,14 @@ function loginUser() {
   );
 }
 
+function logoutUser() {
+  localStorage.clear();
+  //toggleNavbar
+}
+
 function showUserProfile() {
   $('#links').empty();
+  $('#profile-container').empty();
   let token = localStorage.getItem('token');
   let userName = localStorage.getItem('userName');
 
@@ -243,7 +254,6 @@ function deleteStory(event) {
     url: `https://hack-or-snooze.herokuapp.com/stories/${storyID}`,
     headers: { Authorization: 'Bearer ' + token }
   }).then(resp => {
-    console.log(resp);
     displayUserStories();
   });
 }
