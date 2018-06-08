@@ -31,14 +31,18 @@ $(function() {
   $('.form').on('submit', '#submitForm', function(event) {
     event.preventDefault();
     createNewStory();
+    clearForm($(event.target));
   });
   $('.form').on('submit', '#signupForm', function(event) {
     event.preventDefault();
     createNewUser();
+    clearForm($(event.target));
   });
   $('.form').on('submit', '#loginForm', function(event) {
     event.preventDefault();
     loginUser();
+    console.log($(event.target));
+    clearForm($(event.target));
   });
 
   $('ol').on('click', '.star', toggleFavorite);
@@ -49,11 +53,16 @@ $(function() {
 });
 
 function isLoggedIn() {
-  if (localStorage.getItem('token') && localStorage.getItem('userName')) {
+  if (localStorage.getItem('token') && localStorage.getItem('username')) {
     return true;
   } else {
     return false;
   }
+}
+
+function clearForm($form) {
+  $form.find('input').val('');
+  $form.parent().slideUp();
 }
 
 function displayStories() {
@@ -67,40 +76,44 @@ function displayStories() {
         constructAndDisplayStoryLink(story);
       });
       if (isLoggedIn()) {
-        getUserFavorites()
-          .then(favorites => {
-            let favoritesSet = new Set();
-            favorites.forEach(favorite => {
-              favoritesSet.add(favorite.storyId);
-            });
-            $('#links i').each((index, elem) => {
-              if (
-                favoritesSet.has(
-                  $(elem)
-                    .parent()
-                    .attr('id')
-                )
-              ) {
-                $(elem).toggleClass('far fas');
-              }
-            });
-          })
-          .catch(err => console.log(err));
+        checkListForUserFavorites();
       }
     })
     .catch(err => console.log(err));
 }
 
+function checkListForUserFavorites() {
+  getUserFavorites()
+    .then(favorites => {
+      const favoritesSet = new Set();
+      favorites.forEach(favorite => {
+        favoritesSet.add(favorite.storyId);
+      });
+      $('#links i').each((index, elem) => {
+        if (
+          favoritesSet.has(
+            $(elem)
+              .parent()
+              .attr('id')
+          )
+        ) {
+          $(elem).toggleClass('far fas');
+        }
+      });
+    })
+    .catch(err => console.log(err));
+}
+
 function getUserFavorites() {
-  let userName = localStorage.getItem('userName');
-  let token = localStorage.getItem('token');
+  const username = localStorage.getItem('username');
+  const token = localStorage.getItem('token');
   return new Promise((resolve, reject) => {
     $.ajax({
       method: 'GET',
-      url: `https://hack-or-snooze.herokuapp.com/users/${userName}`,
+      url: `https://hack-or-snooze.herokuapp.com/users/${username}`,
       headers: { Authorization: 'Bearer ' + token }
     })
-      .then(response => resolve(response.data.favorites))
+      .then(res => resolve(res.data.favorites))
       .catch(err => reject(err));
   });
 }
@@ -110,22 +123,23 @@ function displayUserFavorites() {
   getUserFavorites().then(favorites => {
     $('#links').empty();
     favorites.forEach(story => constructAndDisplayStoryLink(story, true));
+    checkListForUserFavorites();
   });
 }
 
 function displayUserStories() {
   $('#profile-container').empty();
-  //query API to get a list of all stories
-  let userName = localStorage.getItem('userName');
-  let token = localStorage.getItem('token');
+
+  const username = localStorage.getItem('username');
+  const token = localStorage.getItem('token');
 
   $.ajax({
     method: 'GET',
-    url: `https://hack-or-snooze.herokuapp.com/users/${userName}`,
+    url: `https://hack-or-snooze.herokuapp.com/users/${username}`,
     headers: { Authorization: 'Bearer ' + token }
-  }).then(response => {
+  }).then(res => {
     $('#links').empty();
-    response.data.stories.forEach(story =>
+    res.data.stories.forEach(story =>
       constructAndDisplayStoryLink(story, false, true)
     );
   });
@@ -134,12 +148,12 @@ function displayUserStories() {
 function constructAndDisplayStoryLink(
   story,
   isFavorites = false,
-  isOwnStory = false
+  isOwnStories = false
 ) {
   let starClass = 'far';
   if (isFavorites) starClass = 'fas';
 
-  let $newLink = $(
+  const $newLink = $(
     `<li class="link-row" id="${story.storyId}">
     <i class="star ${starClass} fa-star">
     </i><a href="${story.url}">${story.title}</a>
@@ -147,7 +161,7 @@ function constructAndDisplayStoryLink(
     </li>`
   );
 
-  if (isOwnStory) {
+  if (isOwnStories) {
     $newLink.append($('<button class="deleteBtn">DELETE</button>'));
   }
 
@@ -155,39 +169,32 @@ function constructAndDisplayStoryLink(
 }
 
 function createNewUser() {
-  let name = $('#name').val();
-  let username = $('#usernameSignUp').val();
-  let password = $('#passwordSignUp').val();
-  let dataObj = {
+  const dataObj = {
     data: {
-      name: name,
-      username: username,
-      password: password
+      name: $('#name').val(),
+      username: $('#usernameSignUp').val(),
+      password: $('#passwordSignUp').val()
     }
   };
 
-  $.post('https://hack-or-snooze.herokuapp.com/users', dataObj).then(msg => {
-    alert(`Sign Up Successful!`);
+  $.post('https://hack-or-snooze.herokuapp.com/users', dataObj).then(res => {
+    alert(`successfully signed up as ${res.username}`);
   });
 }
 
 function loginUser() {
-  let username = $('#usernameLogin').val();
-  let password = $('#passwordLogin').val();
-
-  let dataObj = {
+  const username = $('#usernameLogin').val();
+  const dataObj = {
     data: {
       username: username,
-      password: password
+      password: $('#passwordLogin').val()
     }
   };
-  $.post('https://hack-or-snooze.herokuapp.com/auth', dataObj).then(
-    response => {
-      let token = response.data.token;
-      localStorage.setItem('token', token);
-      localStorage.setItem('userName', username);
-    }
-  );
+  $.post('https://hack-or-snooze.herokuapp.com/auth', dataObj).then(res => {
+    const token = res.data.token;
+    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('username', username);
+  });
 }
 
 function logoutUser() {
@@ -198,73 +205,72 @@ function logoutUser() {
 function showUserProfile() {
   $('#links').empty();
   $('#profile-container').empty();
-  let token = localStorage.getItem('token');
-  let userName = localStorage.getItem('userName');
+
+  const token = localStorage.getItem('token');
+  const username = localStorage.getItem('username');
 
   $.ajax({
     method: 'GET',
-    url: `https://hack-or-snooze.herokuapp.com/users/${userName}`,
+    url: `https://hack-or-snooze.herokuapp.com/users/${username}`,
     headers: { Authorization: 'Bearer ' + token }
-  }).then(response => {
-    let name = response.data.name;
-    let userName = response.data.username;
-    let profileName = $('<p>', { text: `Name:      ${name}` });
-    let profileUsername = $('<p>', { text: `User Name:      ${userName}` });
-    $('#profile-container').append(profileName, profileUsername);
-
-    // $('#profileName').text(`Name:      ${name}`);
-    // $('#profileUserName').text(`User Name:      ${userName}`);
+  }).then(res => {
+    const $name = $(`<h3>Name: ${res.data.name}</h3>`);
+    const $username = $(`<h3>Username: ${res.data.username}</h3>`);
+    const $joinedOn = $(`<h3>Member Since: ${res.data.createdAt}</h3>`);
+    $('#profile-container').append($name, $username, $joinedOn);
   });
 }
 
 function createNewStory() {
-  //pull data from form
-  let title = $('#title').val();
-  let url = $('#url').val();
-  let author = $('#author').val();
-  let dataObj = {
+  const title = $('#title').val();
+  const url = $('#url').val();
+  const author = $('#author').val();
+  const dataObj = {
     data: {
-      username: localStorage.getItem('userName'),
+      username: localStorage.getItem('username'),
       title: title,
       url: url,
       author: author
     }
   };
-  let token = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
   $.ajax({
     method: 'POST',
-    url: 'https://hack-or-snooze.herokuapp.com/stories?skip=0&limit=10',
+    url: 'https://hack-or-snooze.herokuapp.com/stories',
     data: dataObj,
     headers: { Authorization: 'Bearer ' + token }
-  }).then(response => displayStories());
+  })
+    .then(() => displayStories())
+    .catch(err => console.log(err));
 
-  //clear form
-  $('#title').val('');
-  $('#url').val('');
+  // //clear form
+  // $('#title').val('');
+  // $('#url').val('');
 }
 
 function deleteStory(event) {
-  let storyID = $(event.target)
+  const storyID = $(event.target)
     .parent()
     .attr('id');
-  let token = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
   $.ajax({
     method: 'DELETE',
     url: `https://hack-or-snooze.herokuapp.com/stories/${storyID}`,
     headers: { Authorization: 'Bearer ' + token }
-  }).then(resp => {
-    displayUserStories();
-  });
+  })
+    .then(() => {
+      displayUserStories();
+    })
+    .catch(err => console.log(err));
 }
 
 function toggleFavorite(event) {
-  console.log(event.target);
-  let storyId = $(event.target)
+  const storyId = $(event.target)
     .parent()
     .attr('id');
-  let token = localStorage.getItem('token');
-  let userName = localStorage.getItem('userName');
+  const token = localStorage.getItem('token');
+  const username = localStorage.getItem('username');
   let method = 'POST';
 
   //is a favorite
@@ -275,9 +281,11 @@ function toggleFavorite(event) {
 
   $.ajax({
     method: method,
-    url: `https://hack-or-snooze.herokuapp.com/users/${userName}/favorites/${storyId}`,
+    url: `https://hack-or-snooze.herokuapp.com/users/${username}/favorites/${storyId}`,
     headers: { Authorization: 'Bearer ' + token }
-  }).then(resp => console.log(resp));
+  })
+    .then(res => console.log(res))
+    .catch(err => console.log(err));
 
   $(event.target).toggleClass('far fas');
 }
@@ -298,6 +306,4 @@ function showHostnameLinks(urlText) {
 
   $('#links').empty();
   $('#links').append($hostnameLinks);
-  $('#favoritesText').text('all');
-  $('#links').toggleClass('all favorites');
 }
