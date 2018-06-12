@@ -85,35 +85,13 @@ function displayStories() {
         constructAndDisplayStoryLink(story);
       });
       if (isLoggedIn()) {
-        checkListForUserFavorites();
+        getUserFavorites().then(favorites => {
+          checkListForUserFavorites(favorites);
+        });
       }
     })
     .catch(err => console.log(err));
 }
-
-// function checkListForUserFavorites() {
-//   getUserFavorites()
-//     .then(favorites => {
-//       const favoritesSet = new Set();
-//       favorites.forEach(favorite => {
-//         favoritesSet.add(favorite.storyId);
-//       });
-//       console.log(favoritesSet);
-//       $('#links i').each((index, elem) => {
-//         if (
-//           favoritesSet.has(
-//             $(elem)
-//               .parent()
-//               .attr('id')
-//           )
-//         ) {
-//           console.log('fired');
-//           $(elem).toggleClass('far fas');
-//         }
-//       });
-//     })
-//     .catch(err => console.log(err));
-// }
 
 function checkListForUserFavorites(favorites) {
   const favoritesSet = new Set();
@@ -154,7 +132,6 @@ function displayUserFavorites() {
   getUserFavorites().then(favorites => {
     $('#links').empty();
     favorites.forEach(story => constructAndDisplayStoryLink(story, true));
-    checkListForUserFavorites(favorites);
   });
 }
 
