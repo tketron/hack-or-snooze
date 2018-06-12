@@ -1,6 +1,36 @@
 $(function() {
+  attachNavBarListeners();
+  buildNavBar();
   displayStories();
 
+  addFormListener('#submitForm', createNewStory);
+  addFormListener('#signupForm', createNewUser);
+  addFormListener('#loginForm', loginUser);
+
+  $('ol').on('click', '.star', toggleFavorite);
+  $('ol').on('click', '.deleteBtn', deleteStory);
+  $('ol').on('click', '.link', function(event) {
+    showHostnameLinks($(event.target).text());
+  });
+});
+
+function isLoggedIn() {
+  if (localStorage.getItem('token') && localStorage.getItem('username')) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function addFormListener(id, fn) {
+  $('.form').on('submit', id, function(event) {
+    event.preventDefault();
+    fn();
+    clearForm($(event.target));
+  });
+}
+
+function attachNavBarListeners() {
   $('#logo').on('click', function() {
     $('#submitForm').slideUp();
     $('#loginForm').slideUp();
@@ -27,36 +57,15 @@ $(function() {
     $('#signupForm').slideUp();
     $('#loginForm').slideToggle();
   });
+}
 
-  $('.form').on('submit', '#submitForm', function(event) {
-    event.preventDefault();
-    createNewStory();
-    clearForm($(event.target));
-  });
-  $('.form').on('submit', '#signupForm', function(event) {
-    event.preventDefault();
-    createNewUser();
-    clearForm($(event.target));
-  });
-  $('.form').on('submit', '#loginForm', function(event) {
-    event.preventDefault();
-    loginUser();
-    console.log($(event.target));
-    clearForm($(event.target));
-  });
-
-  $('ol').on('click', '.star', toggleFavorite);
-  $('ol').on('click', '.deleteBtn', deleteStory);
-  $('ol').on('click', '.link', function(event) {
-    showHostnameLinks($(event.target).text());
-  });
-});
-
-function isLoggedIn() {
-  if (localStorage.getItem('token') && localStorage.getItem('username')) {
-    return true;
+function buildNavBar() {
+  if (isLoggedIn()) {
+    $('.auth-required').show();
+    $('.auth-not-required').hide();
   } else {
-    return false;
+    $('.auth-required').hide();
+    $('.auth-not-required').show();
   }
 }
 
@@ -194,12 +203,15 @@ function loginUser() {
     const token = res.data.token;
     localStorage.setItem('token', res.data.token);
     localStorage.setItem('username', username);
+    buildNavBar();
+    displayStories();
   });
 }
 
 function logoutUser() {
   localStorage.clear();
-  //toggleNavbar
+  buildNavBar();
+  displayStories();
 }
 
 function showUserProfile() {
