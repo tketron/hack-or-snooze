@@ -91,26 +91,48 @@ function displayStories() {
     .catch(err => console.log(err));
 }
 
-function checkListForUserFavorites() {
-  getUserFavorites()
-    .then(favorites => {
-      const favoritesSet = new Set();
-      favorites.forEach(favorite => {
-        favoritesSet.add(favorite.storyId);
-      });
-      $('#links i').each((index, elem) => {
-        if (
-          favoritesSet.has(
-            $(elem)
-              .parent()
-              .attr('id')
-          )
-        ) {
-          $(elem).toggleClass('far fas');
-        }
-      });
-    })
-    .catch(err => console.log(err));
+// function checkListForUserFavorites() {
+//   getUserFavorites()
+//     .then(favorites => {
+//       const favoritesSet = new Set();
+//       favorites.forEach(favorite => {
+//         favoritesSet.add(favorite.storyId);
+//       });
+//       console.log(favoritesSet);
+//       $('#links i').each((index, elem) => {
+//         if (
+//           favoritesSet.has(
+//             $(elem)
+//               .parent()
+//               .attr('id')
+//           )
+//         ) {
+//           console.log('fired');
+//           $(elem).toggleClass('far fas');
+//         }
+//       });
+//     })
+//     .catch(err => console.log(err));
+// }
+
+function checkListForUserFavorites(favorites) {
+  const favoritesSet = new Set();
+  favorites.forEach(favorite => {
+    favoritesSet.add(favorite.storyId);
+  });
+  console.log(favoritesSet);
+  $('#links i').each((index, elem) => {
+    if (
+      favoritesSet.has(
+        $(elem)
+          .parent()
+          .attr('id')
+      )
+    ) {
+      console.log('fired');
+      $(elem).toggleClass('far fas');
+    }
+  });
 }
 
 function getUserFavorites() {
@@ -132,7 +154,7 @@ function displayUserFavorites() {
   getUserFavorites().then(favorites => {
     $('#links').empty();
     favorites.forEach(story => constructAndDisplayStoryLink(story, true));
-    checkListForUserFavorites();
+    checkListForUserFavorites(favorites);
   });
 }
 
@@ -167,6 +189,9 @@ function constructAndDisplayStoryLink(
     <i class="star ${starClass} fa-star">
     </i><a href="${story.url}">${story.title}</a>
     <span class="link">(${story.url})</span>
+    <div class='link-details'><span>submitted by ${
+      story.username
+    } ${getTimeElapsed(story.createdAt)}</span></div>
     </li>`
   );
 
@@ -175,6 +200,18 @@ function constructAndDisplayStoryLink(
   }
 
   $('#links').append($newLink);
+}
+
+function getTimeElapsed(dateString) {
+  let dateMilliseconds = Date.parse(dateString);
+  let differenceInSeconds = (Date.now() - dateMilliseconds) / 1000;
+  if (differenceInSeconds < 3600) {
+    return `${Math.ceil(differenceInSeconds / 60)} minutes ago`;
+  } else if (differenceInSeconds < 86400) {
+    return `${Math.ceil(differenceInSeconds / 3600)} hours ago`;
+  } else {
+    return `${Math.ceil(differenceInSeconds / 86400)} days ago`;
+  }
 }
 
 function createNewUser() {
@@ -254,10 +291,6 @@ function createNewStory() {
   })
     .then(() => displayStories())
     .catch(err => console.log(err));
-
-  // //clear form
-  // $('#title').val('');
-  // $('#url').val('');
 }
 
 function deleteStory(event) {

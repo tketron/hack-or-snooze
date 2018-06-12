@@ -41,10 +41,6 @@ h1 {
   /* display: none; */
 }
 
-/* #signupForm {
-  display: block; */
-/* } */
-
 .form-row {
   padding: 0.5em;
   display: flex;
@@ -92,6 +88,12 @@ h1 {
   padding: 0.5em;
 }
 
+.link-details {
+  padding-left: 0.5em;
+  padding-top: 0.3em;
+  font-size: 0.7em;
+}
+
 i {
   cursor: pointer;
 }
@@ -105,4 +107,8 @@ i {
 
 .link:hover {
   text-decoration: underline;
+}
+
+.deleteBtn {
+  padding: 0.2em;
 }
