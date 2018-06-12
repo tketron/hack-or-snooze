@@ -9,7 +9,7 @@ body {
 
 #navbar {
   display: flex;
-  justify-content: start;
+  justify-content: space-between;
   align-items: baseline;
   background-color: #ed6f2e;
   padding: 0.5em;
